@@ -97,8 +97,8 @@ class nCore:
         :param password: login credentials
         :param useragent: optional web browser user agent string
         """
-        self.username = 'dodo89'
-        self.password = 'behemoth2!'
+        self.username = 'username'
+        self.password = 'password'
         self.url_base = 'https://ncore.cc'
         self.url_login = self.url_base + '/login.php'
         self.url_torrents = self.url_base + '/torrents.php'
