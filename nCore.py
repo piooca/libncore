@@ -5,6 +5,8 @@ import urllib
 import urllib2
 import cookielib
 from bs4 import BeautifulSoup
+import ConfigParser
+from os.path import expanduser
 import transmissionrpc
 from base64 import b64encode
 
@@ -73,6 +75,15 @@ def _count_pages(html):
     except AttributeError:
         return 0
 
+def readconfig(configfile='~/.ncore/config'):
+    config = ConfigParser.ConfigParser()
+    config.read(expanduser(configfile))
+    d = dict(config._sections)
+    for k in d:
+        d[k] = dict(config._defaults, **d[k])
+        d[k].pop('__name__', None)
+    return d
+
 
 class nCore:
     """
@@ -88,8 +99,7 @@ class nCore:
     pioodownload(torrentfile)
     """
 
-    def __init__(self, username, password,
-                 useragent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0'):
+    def __init__(self, configfile='~/.ncore/config'):
         """
         missing doc!!!
         # TODO doc!
@@ -97,16 +107,18 @@ class nCore:
         :param password: login credentials
         :param useragent: optional web browser user agent string
         """
-        self.username = 'username'
-        self.password = 'password'
+        self.configuration = readconfig(configfile)
+        self.username = self.configuration['auth']['username']
+        self.password = self.configuration['auth']['password']
+        self.useragent = self.configuration['auth']['useragent']
         self.url_base = 'https://ncore.cc'
         self.url_login = self.url_base + '/login.php'
         self.url_torrents = self.url_base + '/torrents.php'
-        self.login_data = urllib.urlencode({'nev': username, 'pass': password})
+        self.login_data = urllib.urlencode({'nev': self.username, 'pass': self.password})
         self.cj = cookielib.CookieJar()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
 
-        self.opener.addheaders = [('User-Agent', useragent)]
+        self.opener.addheaders = [('User-Agent', self.useragent)]
         self.opener.open(self.url_login, self.login_data)
 
     def retrieve_torrent(self, torrent_id):

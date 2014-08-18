@@ -4,10 +4,11 @@ __author__ = 'pioo'
 
 import nCore
 import sqlite3
-from os.path import exists
+from os.path import exists, expanduser
 import datetime
 
-_dbfile = "figyelo.db"  # TODO find dbfile's place
+_dbfile = expanduser("~/.ncore/figyelo.db")
+#TODO put db location into configfile
 
 if not exists(_dbfile):
     _needs_init = True
@@ -96,7 +97,7 @@ def main():
     datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
     # please replace username and password
-    n1 = nCore.nCore('username', 'password')
+    n1 = nCore.nCore()
     print "[+] Logged in"
     print "[+] Listing figyelo DB:"
     print_figyelo()
