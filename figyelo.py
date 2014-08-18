@@ -24,7 +24,7 @@ def _create_figyelo_db(cur):
     :param cur:
     :return:
     """
-    # TODO desing DB scheme
+    # TODO design DB scheme
     cur.execute("CREATE TABLE figyelo (figyelo INTEGER PRIMARY KEY AUTOINCREMENT, szuro TEXT, kategoria TEXT)")
     cur.execute(
         'CREATE TABLE TorrentData (id TEXT PRIMARY KEY, nev TEXT, alt_nev TEXT, tipus TEXT, img_url TEXT, '

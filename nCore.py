@@ -170,20 +170,6 @@ def print_torrents(torrents):
         print("%(date)s|%(nev)s, (%(meret)s), Dwn: %(downloaded)s, S/L: %(seed)s/%(leech)s, ID: %(id)s" % torrents[i])
 
 
-def pioodownload(torrent, started=True):
-    """
-    soon to be removed function
-    uploads torrent file to a transmission instance
-    """
-    tc = transmissionrpc.Client('pbl.pioo.hu')
-    params = {'paused': False}
-    torrent = b64encode(torrent)
-    if started:
-        tc.add_torrent(torrent, None, **params)
-    else:
-        tc.add_torrent(torrent)
-
-
 def main():
     n1 = nCore('myusername', 'mypassword')
     # torrents = n1.search('game of thrones', 'xvidser')
