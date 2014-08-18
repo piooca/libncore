@@ -1,0 +1,22 @@
+[auth]
+# authentication data
+username=username
+password=password
+
+[database]
+# database settings
+# for now only sqlite3 is supported
+#engine=sqlite3
+#database=~/.ncore/ncore.sqlite
+
+[search]
+# default search preferences
+category=xvid_hun
+tags=
+#tags=vigjatek
+
+[download]
+# local torrent server if available
+# only transmission is supported
+server_type=transmission
+server_host=my.transmission.server
