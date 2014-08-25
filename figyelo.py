@@ -7,8 +7,9 @@ import sqlite3
 from os.path import exists, expanduser
 import datetime
 
-_dbfile = expanduser("~/.ncore/figyelo.db")
-#TODO put db location into configfile
+_config = nCore.readconfig()
+print _config
+_dbfile = expanduser(_config['figyelo']['database'])
 
 if not exists(_dbfile):
     _needs_init = True
@@ -79,6 +80,13 @@ def insert_into_db(torrent, figyelo):
     _conn.commit()
     return
 
+def last_torrentid_of_figyelo(figyeloid):
+    _cur.execute('SELECT MAX(id) FROM TorrentData WHERE figyelo = ?', (figyeloid, ))
+    row = _cur.fetchone()
+    if row[0]:
+        return row[0]
+    else:
+        return 0
 
 def _is_id_available(torrentid):
     _cur.execute('SELECT count(id) FROM TorrentData WHERE id = ?', (torrentid, ))
@@ -93,22 +101,29 @@ def main():
     if _needs_init:
         _create_figyelo_db(_cur)
 
-    days = 30
-    datum = str(datetime.date.today()-datetime.timedelta(days=days))
+    #days = 30
+    #datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
     # please replace username and password
     n1 = nCore.nCore()
     print "[+] Logged in"
     print "[+] Listing figyelo DB:"
     print_figyelo()
-    print "[+] Listing search results for last %s days:" % days
+    print "[+] Listing search results"
     for keres in list_figyelo():
-        print "[*] kereses: \"" + keres[1] + "\" in " + keres[2]
-        for torrent in n1.get_torrents(keres[1]):
-            #print torrent['nev']
-            if torrent['date'] < datum:
+        lastid = last_torrentid_of_figyelo(keres[0])
+        print '[*] kereses (%s): "%s" in %s' % (keres[0], keres[1], keres[2])
+        for torrent in n1.get_torrents(keres[1], keres[2]):
+            print '[+] talalt torrent id %s' % torrent['id']
+            print '[+] figyeloben az utolso torrent id: %s' % lastid
+            if int(torrent['id']) <= int(lastid):
+                print '[!] nincs ujabb torrent, break'
                 break
-            nCore.print_torrents([torrent])
+            if _is_id_available(torrent['id']):
+                insert_into_db(torrent, keres[0])
+                nCore.print_torrents([torrent])
+            else:
+                print '[!] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
         print
 
 

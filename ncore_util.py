@@ -56,13 +56,13 @@ def torrent_search(mit, miben, tags):
 
 print '[*] Starting nCore shell v0.1 at ' + str(datetime.datetime.now())
 config = readconfig()
-# print config
+print config
 username = config['auth']['username']
 password = config['auth']['password']
 default_category = config['search']['category']
 default_tags = config['search']['tags']
 
-n = nCore(username, password)
+n = nCore()
 print '[+] Successfully logged in.'
 usage()
 #categories()
