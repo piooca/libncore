@@ -29,9 +29,23 @@ def _create_figyelo_db(cur):
     # TODO design DB scheme
     cur.execute("CREATE TABLE figyelo (figyelo INTEGER PRIMARY KEY AUTOINCREMENT, szuro TEXT, kategoria TEXT)")
     cur.execute(
-        'CREATE TABLE TorrentData (id TEXT PRIMARY KEY, nev TEXT, alt_nev TEXT, tipus TEXT, img_url TEXT, '
-        'infolink TEXT, imdbrank TEXT, meret TEXT, downloaded NUMBER, seed NUMBER, leech NUMBER, date NUMBER, '
-        'feltolto TEXT, status TEXT, figyelo NUMBER)')
+        'CREATE TABLE TorrentData ('
+        'id NUMBER,'
+        'nev TEXT,'
+        'alt_nev TEXT,'
+        'tipus TEXT,'
+        'img_url TEXT, '
+        'infolink TEXT,'
+        'imdbrank TEXT,'
+        'meret TEXT,'
+        'downloaded NUMBER,'
+        'seed NUMBER,'
+        'leech NUMBER,'
+        'date NUMBER, '
+        'feltolto TEXT,'
+        'status TEXT,'
+        'figyelo NUMBER,'
+        'PRIMARY KEY (id)')
     return
 
 
@@ -43,10 +57,10 @@ def list_figyelo():
 def print_figyelo():
     figyelok = list_figyelo()
     for figyelo in figyelok:
-        print figyelo[1] + "\t\t" + figyelo[2]
+        print figyelo[0] + " " + figyelo[1] + "\t\t" + figyelo[2]
 
 
-def add_figyelo(szuro, kategoria=""):
+def add_figyelo(szuro, kategoria="xvidser_hun"):
     _cur.execute("INSERT INTO figyelo (szuro, kategoria) "
                  "VALUES (:szuro, :kategoria)",
                  {'szuro': szuro, 'kategoria': kategoria})
@@ -55,6 +69,7 @@ def add_figyelo(szuro, kategoria=""):
 
 def del_figyelo(szuro):
     _cur.execute("DELETE FROM figyelo WHERE szuro=:szuro", {'szuro': szuro})
+    # TODO delete from TorrentData where TorrentData.figyelo = figyeloid
     _conn.commit()
 
 
@@ -101,6 +116,7 @@ def main():
     if _needs_init:
         _create_figyelo_db(_cur)
 
+    # TODO from now on we must parse cmdline options, or move figyelo functionality into ncore_util.py
     #days = 30
     #datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
@@ -109,7 +125,7 @@ def main():
     print "[+] Logged in"
     print "[+] Listing figyelo DB:"
     print_figyelo()
-    print "[+] Listing search results"
+    print "[+] Listing search results\n"
     for keres in list_figyelo():
         lastid = last_torrentid_of_figyelo(keres[0])
         print '[*] kereses (%s): "%s" in %s' % (keres[0], keres[1], keres[2])
