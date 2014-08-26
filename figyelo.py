@@ -8,7 +8,7 @@ from os.path import exists, expanduser
 import datetime
 
 _config = nCore.readconfig()
-print _config
+#print _config
 _dbfile = expanduser(_config['figyelo']['database'])
 
 if not exists(_dbfile):
@@ -53,11 +53,15 @@ def list_figyelo():
     _cur.execute("SELECT * FROM figyelo")
     return _cur.fetchall()
 
+def get_figyelo(figyeloid):
+    _cur.execute("SELECT * FROM figyelo WHERE figyelo = ?", (figyeloid, ))
+    return _cur.fetchall()
+
 
 def print_figyelo():
     figyelok = list_figyelo()
     for figyelo in figyelok:
-        print figyelo[0] + " " + figyelo[1] + "\t\t" + figyelo[2]
+        print("%s %s\t\t%s" % (figyelo[0], figyelo[1], figyelo[2]))
 
 
 def add_figyelo(szuro, kategoria="xvidser_hun"):
@@ -95,6 +99,7 @@ def insert_into_db(torrent, figyelo):
     _conn.commit()
     return
 
+
 def last_torrentid_of_figyelo(figyeloid):
     _cur.execute('SELECT MAX(id) FROM TorrentData WHERE figyelo = ?', (figyeloid, ))
     row = _cur.fetchone()
@@ -102,6 +107,7 @@ def last_torrentid_of_figyelo(figyeloid):
         return row[0]
     else:
         return 0
+
 
 def _is_id_available(torrentid):
     _cur.execute('SELECT count(id) FROM TorrentData WHERE id = ?', (torrentid, ))
@@ -111,6 +117,25 @@ def _is_id_available(torrentid):
     else:
         return False
 
+
+def list_new_torrents(ncore, figyeloid):
+    figyelo = get_figyelo(figyeloid)[0]
+    lastid = last_torrentid_of_figyelo(figyeloid)
+    new_torrents = []
+    # TODO innen ki kellene szedni a printeket
+    print '[*] kereses (%s): "%s" in %s' % (figyelo[0], figyelo[1], figyelo[2])
+    print '[+] figyeloben az utolso torrent id: %s' % lastid
+    for torrent in ncore.get_torrents(figyelo[1], figyelo[2]):
+        print '[+] talalt torrent id %s' % torrent['id']
+        if int(torrent['id']) <= int(lastid):
+            print '[!] nincs ujabb torrent, break'
+            break
+        nCore.print_torrents([torrent])
+        new_torrents.append(torrent)
+        if not _is_id_available(torrent['id']):
+            print '[!] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
+    print
+    return new_torrents
 
 def main():
     if _needs_init:
@@ -126,22 +151,16 @@ def main():
     print "[+] Listing figyelo DB:"
     print_figyelo()
     print "[+] Listing search results\n"
-    for keres in list_figyelo():
-        lastid = last_torrentid_of_figyelo(keres[0])
-        print '[*] kereses (%s): "%s" in %s' % (keres[0], keres[1], keres[2])
-        for torrent in n1.get_torrents(keres[1], keres[2]):
-            print '[+] talalt torrent id %s' % torrent['id']
-            print '[+] figyeloben az utolso torrent id: %s' % lastid
-            if int(torrent['id']) <= int(lastid):
-                print '[!] nincs ujabb torrent, break'
-                break
-            if _is_id_available(torrent['id']):
-                insert_into_db(torrent, keres[0])
-                nCore.print_torrents([torrent])
-            else:
-                print '[!] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
-        print
 
+    update_db = False
+
+    for figyelo in list_figyelo():
+        torrents = list_new_torrents(n1, figyelo[0])
+        # TODO itt kellene printelni az adatokat
+        if update_db:
+            for torrent in torrents:
+                print("[+] inserting torrent (%s) into database" % torrent['nev'])
+                insert_into_db(torrent, figyelo[0])
 
 if __name__ == "__main__":
     main()
