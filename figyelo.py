@@ -123,19 +123,35 @@ def list_new_torrents(ncore, figyeloid):
     lastid = last_torrentid_of_figyelo(figyeloid)
     new_torrents = []
     # TODO innen ki kellene szedni a printeket
-    print '[*] kereses (%s): "%s" in %s' % (figyelo[0], figyelo[1], figyelo[2])
-    print '[+] figyeloben az utolso torrent id: %s' % lastid
+    print '[*] "%s" in %s' % (figyelo[1], figyelo[2])
+    print '[I] utolso ismert torrent torrent id: %s' % lastid
     for torrent in ncore.get_torrents(figyelo[1], figyelo[2]):
-        print '[+] talalt torrent id %s' % torrent['id']
+        print '[I] talalt torrent id %s' % torrent['id']
         if int(torrent['id']) <= int(lastid):
-            print '[!] nincs ujabb torrent, break'
+            print '[I] nincs ujabb torrent'
             break
         nCore.print_torrents([torrent])
         new_torrents.append(torrent)
         if not _is_id_available(torrent['id']):
-            print '[!] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
+            print '[W] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
     print
     return new_torrents
+
+
+def pioodownload(torrent, started=True):
+    """
+    uploads torrent file to a transmission instance
+    """
+    server_host = _config['download']['server_host']
+    tc = transmissionrpc.Client(server_host)
+    params = {'paused': False}
+    torrent = b64encode(torrent)
+    if started:
+        tc.add_torrent(torrent, None, **params)
+    else:
+        tc.add_torrent(torrent)
+
+
 
 def main():
     if _needs_init:
@@ -145,22 +161,31 @@ def main():
     #days = 30
     #datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
+    update_db = True
+    auto_download = False
+
     # please replace username and password
     n1 = nCore.nCore()
-    print "[+] Logged in"
-    print "[+] Listing figyelo DB:"
+    print "[I] Logged in"
+    print "[I] Listing figyelo DB:"
     print_figyelo()
-    print "[+] Listing search results\n"
-
-    update_db = False
+    print "[I] Listing search results\n"
+    if update_db:
+        print('[D] Auto update database is enabled')
+    if auto_download:
+        print('[D] Auto download of torrents is enabled')
 
     for figyelo in list_figyelo():
         torrents = list_new_torrents(n1, figyelo[0])
         # TODO itt kellene printelni az adatokat
         if update_db:
             for torrent in torrents:
-                print("[+] inserting torrent (%s) into database" % torrent['nev'])
+                print("[D] inserting torrent (%s) into database" % torrent['nev'])
                 insert_into_db(torrent, figyelo[0])
+        if auto_download:
+            for torrent in torrents:
+                print("[D] downloading (%s) %s" % (torrent['id'], torrent['nev']))
+                #pioodownload(n1.retrieve_torrent(int(torrent['id'])))
 
 if __name__ == "__main__":
     main()
