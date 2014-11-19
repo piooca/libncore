@@ -123,18 +123,17 @@ def list_new_torrents(ncore, figyeloid):
     lastid = last_torrentid_of_figyelo(figyeloid)
     new_torrents = []
     # TODO innen ki kellene szedni a printeket
-    print '[*] "%s" in %s' % (figyelo[1], figyelo[2])
-    print '[I] utolso ismert torrent torrent id: %s' % lastid
+    print '\n[*] "%s" in %s (last id: %s)' % (figyelo[1], figyelo[2], lastid)
+    #print '[I] utolso ismert torrent torrent id: %s' % lastid
     for torrent in ncore.get_torrents(figyelo[1], figyelo[2]):
-        print '[I] talalt torrent id %s' % torrent['id']
+        #print '[I] talalt torrent id %s' % torrent['id']
         if int(torrent['id']) <= int(lastid):
-            print '[I] nincs ujabb torrent'
+            #print '[I] nincs ujabb torrent'
             break
         nCore.print_torrents([torrent])
         new_torrents.append(torrent)
         if not _is_id_available(torrent['id']):
             print '[W] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
-    print
     return new_torrents
 
 
@@ -178,14 +177,16 @@ def main():
     for figyelo in list_figyelo():
         torrents = list_new_torrents(n1, figyelo[0])
         # TODO itt kellene printelni az adatokat
-        if update_db:
+        if update_db and len(torrents)>0:
+            print("[I] inserting torrents into database")
             for torrent in torrents:
-                print("[D] inserting torrent (%s) into database" % torrent['nev'])
-                insert_into_db(torrent, figyelo[0])
+                if _is_id_available(torrent['id']):
+                    insert_into_db(torrent, figyelo[0])
         if auto_download:
             for torrent in torrents:
                 print("[D] downloading (%s) %s" % (torrent['id'], torrent['nev']))
                 #pioodownload(n1.retrieve_torrent(int(torrent['id'])))
+        #print
 
 if __name__ == "__main__":
     main()
