@@ -56,6 +56,11 @@ def list_figyelo():
     return _cur.fetchall()
 
 
+def list_torrents():
+    _cur.execute("SELECT * FROM TorrentData ORDER BY id DESC LIMIT 40")
+    return _cur.fetchall()
+
+
 def get_figyelo(figyeloid):
     _cur.execute("SELECT * FROM figyelo WHERE figyelo = ?", (figyeloid, ))
     return _cur.fetchall()
@@ -65,6 +70,11 @@ def print_figyelo():
     figyelok = list_figyelo()
     for figyelo in figyelok:
         print("%s %s\t\t%s" % (figyelo[0], figyelo[1], figyelo[2]))
+
+def print_torrents():
+    torrents = list_torrents()
+    for torrent in torrents:
+        print torrent[11], torrent[1], torrent[3], torrent[7], torrent[0]
 
 
 def add_figyelo(szuro, kategoria="xvidser_hun"):
@@ -221,6 +231,7 @@ def parse_args():
     table_group.add_argument('-f', '--foo',
                              dest="list_data",
                              nargs='?',
+                             const=True,
                              metavar="list_data",
                              help="print figyelo db")
 
@@ -229,7 +240,6 @@ def parse_args():
                             nargs="*",
                             help="update figyelo database")
     return parser, parser.parse_args()
-
 
 
 def main():
@@ -251,7 +261,7 @@ def main():
     elif args.list_figyelo:
         print_figyelo()
     elif args.list_data:
-        pass
+        print_torrents()
     elif args.figyelo:
         pass
     else:
