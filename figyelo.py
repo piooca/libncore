@@ -5,8 +5,10 @@ __author__ = 'pioo'
 import nCore
 import sqlite3
 from os.path import exists, expanduser
+import argparse
 import datetime
 
+__version__ = '0.1a'
 _config = nCore.readconfig()
 #print _config
 _dbfile = expanduser(_config['figyelo']['database'])
@@ -52,6 +54,7 @@ def _create_figyelo_db(cur):
 def list_figyelo():
     _cur.execute("SELECT * FROM figyelo")
     return _cur.fetchall()
+
 
 def get_figyelo(figyeloid):
     _cur.execute("SELECT * FROM figyelo WHERE figyelo = ?", (figyeloid, ))
@@ -151,15 +154,8 @@ def pioodownload(torrent, started=True):
         tc.add_torrent(torrent)
 
 
-
-def main():
-    if _needs_init:
-        _create_figyelo_db(_cur)
-
-    # TODO from now on we must parse cmdline options, or move figyelo functionality into ncore_util.py
-    #days = 30
-    #datum = str(datetime.date.today()-datetime.timedelta(days=days))
-
+def run():
+    # TODO ezt itten configbol vagy parameterbol kell szedni
     update_db = True
     auto_download = False
 
@@ -187,6 +183,81 @@ def main():
                 print("[D] downloading (%s) %s" % (torrent['id'], torrent['nev']))
                 #pioodownload(n1.retrieve_torrent(int(torrent['id'])))
         #print
+
+
+def parse_args():
+    """
+    Argument parsing as usual.
+    Hence this is a command line application this def is the
+    interface.
+    """
+    description = "nCore figyelo"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('--version', action="version", version=__version__)
+
+    task_group = parser.add_argument_group('foo1')
+    task_group.add_argument('-a', '--add',
+                            dest="add_figyelo",
+                            metavar="ADD",
+                            nargs="*",
+                            help="add new figyelo to db")
+    task_group.add_argument('-d', '--delete',
+                            dest="delete_figyelo",
+                            metavar="DELETEID",
+                            help="remove a figyelo")
+    task_group.add_argument('-l', '--list',
+                            dest='list_figyelo',
+                            nargs='?',
+                            const=True,
+                            help='list figyelo')
+
+    table_group = parser.add_argument_group('bar1')
+    table_group.add_argument('-r', '--run',
+                             dest="update_figyelo",
+                             nargs='?',
+                             const=True,
+                             metavar='update_data',
+                             help="update figyelo db")
+    table_group.add_argument('-f', '--foo',
+                             dest="list_data",
+                             nargs='?',
+                             metavar="list_data",
+                             help="print figyelo db")
+
+    main_group = parser.add_argument_group('main argument')
+    main_group.add_argument('figyelo',
+                            nargs="*",
+                            help="update figyelo database")
+    return parser, parser.parse_args()
+
+
+
+def main():
+    if _needs_init:
+        _create_figyelo_db(_cur)
+
+    # TODO from now on we must parse cmdline options, or move figyelo functionality into ncore_util.py
+    #days = 30
+    #datum = str(datetime.date.today()-datetime.timedelta(days=days))
+
+    parser, args = parse_args()
+    print args
+    if args.update_figyelo:
+        run()
+    elif args.add_figyelo:
+        pass
+    elif args.delete_figyelo:
+        pass
+    elif args.list_figyelo:
+        print_figyelo()
+    elif args.list_data:
+        pass
+    elif args.figyelo:
+        pass
+    else:
+        # parameter nelkul
+        run()
+
 
 if __name__ == "__main__":
     main()
