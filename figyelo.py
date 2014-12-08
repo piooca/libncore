@@ -56,8 +56,16 @@ def list_figyelo():
     return _cur.fetchall()
 
 
-def list_torrents():
-    _cur.execute("SELECT * FROM TorrentData ORDER BY id DESC LIMIT 40")
+def list_torrents(name, id, count):
+    if name:
+        query = "SELECT * FROM TorrentData JOIN figyelo ON TorrentData.figyelo = figyelo.figyelo WHERE figyelo.szuro=? ORDER BY id DESC"
+        _cur.execute(query, (name,))
+    elif id:
+        query = "SELECT * FROM TorrentData JOIN figyelo ON TorrentData.figyelo = figyelo.figyelo WHERE figyelo.figyelo=? ORDER BY id DESC"
+        _cur.execute(query, (id,))
+    else:
+        query = "SELECT * FROM TorrentData ORDER BY id DESC LIMIT ?"
+        _cur.execute(query, (count,))
     return _cur.fetchall()
 
 
@@ -71,8 +79,10 @@ def print_figyelo():
     for figyelo in figyelok:
         print("%s %s\t\t%s" % (figyelo[0], figyelo[1], figyelo[2]))
 
-def print_torrents():
-    torrents = list_torrents()
+def print_torrents(name=None, id=None, count=True):
+    if count is True:
+        count = 40
+    torrents = list_torrents(name, id, count)
     for torrent in torrents:
         print torrent[11], torrent[1], torrent[3], torrent[7], torrent[0]
 
@@ -228,8 +238,18 @@ def parse_args():
                              const=True,
                              metavar='update_data',
                              help="update figyelo db")
-    table_group.add_argument('-f', '--foo',
-                             dest="list_data",
+    table_group.add_argument('--print-by-id',
+                             dest="list_by_id",
+                             nargs=1,
+                             metavar="figyelo_id",
+                             help="print figyelo db")
+    table_group.add_argument('--print-by-name',
+                             dest="list_by_name",
+                             nargs=1,
+                             metavar="figyelo_nev",
+                             help="print figyelo db")
+    table_group.add_argument('--print-last',
+                             dest="list_db",
                              nargs='?',
                              const=True,
                              metavar="list_data",
@@ -260,8 +280,12 @@ def main():
         pass
     elif args.list_figyelo:
         print_figyelo()
-    elif args.list_data:
-        print_torrents()
+    elif args.list_by_id:
+        print_torrents(id=args.list_by_id[0])
+    elif args.list_by_name:
+        print_torrents(name=args.list_by_name[0])
+    elif args.list_db:
+        print_torrents(count=args.list_db)
     elif args.figyelo:
         pass
     else:
