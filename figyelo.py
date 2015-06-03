@@ -6,11 +6,13 @@ import nCore
 import sqlite3
 from os.path import exists, expanduser
 import argparse
-import datetime
+#import datetime
+import transmissionrpc
+from base64 import b64encode
 
 __version__ = '0.1a'
 _config = nCore.readconfig()
-#print _config
+# print _config
 _dbfile = expanduser(_config['figyelo']['database'])
 
 if not exists(_dbfile):
@@ -29,7 +31,9 @@ def _create_figyelo_db(cur):
     :return:
     """
     # TODO design DB scheme
-    cur.execute("CREATE TABLE figyelo (figyelo INTEGER PRIMARY KEY AUTOINCREMENT, szuro TEXT, kategoria TEXT)")
+    cur.execute('CREATE TABLE figyelo ('
+                'figyelo INTEGER PRIMARY KEY AUTOINCREMENT,'
+                'szuro TEXT, kategoria TEXT)')
     cur.execute(
         'CREATE TABLE TorrentData ('
         'id NUMBER,'
@@ -58,10 +62,18 @@ def list_figyelo():
 
 def list_torrents(name, id, count):
     if name:
-        query = "SELECT * FROM TorrentData JOIN figyelo ON TorrentData.figyelo = figyelo.figyelo WHERE figyelo.szuro=? ORDER BY id DESC"
+        query = "SELECT * FROM TorrentData " \
+        "JOIN figyelo " \
+        "ON TorrentData.figyelo = figyelo.figyelo " \
+        "WHERE figyelo.szuro=? " \
+        "ORDER BY id DESC"
         _cur.execute(query, (name,))
     elif id:
-        query = "SELECT * FROM TorrentData JOIN figyelo ON TorrentData.figyelo = figyelo.figyelo WHERE figyelo.figyelo=? ORDER BY id DESC"
+        query = "SELECT * FROM TorrentData " \
+        "JOIN figyelo " \
+        "ON TorrentData.figyelo = figyelo.figyelo " \
+        "WHERE figyelo.figyelo=? " \
+        "ORDER BY id DESC"
         _cur.execute(query, (id,))
     else:
         query = "SELECT * FROM TorrentData ORDER BY id DESC LIMIT ?"
@@ -79,6 +91,7 @@ def print_figyelo():
     for figyelo in figyelok:
         print("%s %s\t\t%s" % (figyelo[0], figyelo[1], figyelo[2]))
 
+
 def print_torrents(name=None, id=None, count=True):
     if count is True:
         count = 40
@@ -89,20 +102,21 @@ def print_torrents(name=None, id=None, count=True):
 
 def add_figyelo(szuro, kategoria="xvidser_hun"):
     _cur.execute("INSERT INTO figyelo (szuro, kategoria) "
-                 "VALUES (:szuro, :kategoria)",
+                 "VALUES (:szuro, :kategoria) ",
                  {'szuro': szuro, 'kategoria': kategoria})
     _conn.commit()
 
 
 def del_figyelo(szuro):
     _cur.execute("DELETE FROM figyelo WHERE szuro=:szuro", {'szuro': szuro})
-    # TODO delete from TorrentData where TorrentData.figyelo = figyeloid
+    #TODO delete from TorrentData where TorrentData.figyelo = figyeloid
     _conn.commit()
 
 
 def insert_into_db(torrent, figyelo):
-    sqlstatement = 'INSERT INTO TorrentData VALUES(:id, :nev, :alt_nev, :tipus, :img_url, :infolink, :imdbrank, ' \
-                   ':meret, :downloaded, :seed, :leech, :date, :feltolto, :status, :figyelo)'
+    sqlstatement = 'INSERT INTO TorrentData ' \
+    'VALUES(:id, :nev, :alt_nev, :tipus, :img_url, :infolink, :imdbrank, ' \
+    ':meret, :downloaded, :seed, :leech, :date, :feltolto, :status, :figyelo)'
     _cur.execute(sqlstatement, {
         'id': torrent['id'],
         'nev': torrent['nev'],
@@ -124,7 +138,9 @@ def insert_into_db(torrent, figyelo):
 
 
 def last_torrentid_of_figyelo(figyeloid):
-    _cur.execute('SELECT MAX(id) FROM TorrentData WHERE figyelo = ?', (figyeloid, ))
+    _cur.execute('SELECT MAX(id) '
+                 'FROM TorrentData '
+                 'WHERE figyelo = ?', (figyeloid, ))
     row = _cur.fetchone()
     if row[0]:
         return row[0]
@@ -133,7 +149,9 @@ def last_torrentid_of_figyelo(figyeloid):
 
 
 def _is_id_available(torrentid):
-    _cur.execute('SELECT count(id) FROM TorrentData WHERE id = ?', (torrentid, ))
+    _cur.execute('SELECT count(id) '
+                 'FROM TorrentData '
+                 'WHERE id = ?', (torrentid, ))
     row = _cur.fetchone()
     if row[0] == 0:
         return True
@@ -147,16 +165,17 @@ def list_new_torrents(ncore, figyeloid):
     new_torrents = []
     # TODO innen ki kellene szedni a printeket
     print '\n[*] "%s" in %s (last id: %s)' % (figyelo[1], figyelo[2], lastid)
-    #print '[I] utolso ismert torrent torrent id: %s' % lastid
+    # print '[I] utolso ismert torrent torrent id: %s' % lastid
     for torrent in ncore.get_torrents(figyelo[1], figyelo[2]):
-        #print '[I] talalt torrent id %s' % torrent['id']
+        # print '[I] talalt torrent id %s' % torrent['id']
         if int(torrent['id']) <= int(lastid):
-            #print '[I] nincs ujabb torrent'
+            # print '[I] nincs ujabb torrent'
             break
         nCore.print_torrents([torrent])
         new_torrents.append(torrent)
         if not _is_id_available(torrent['id']):
-            print '[W] duplicate torrent: %s, %s' % (torrent['id'], torrent['nev'])
+            print '[W] duplicate torrent: %s, %s' % (
+                torrent['id'], torrent['nev'])
     return new_torrents
 
 
@@ -193,16 +212,16 @@ def run():
     for figyelo in list_figyelo():
         torrents = list_new_torrents(n1, figyelo[0])
         # TODO itt kellene printelni az adatokat
-        if update_db and len(torrents)>0:
+        if update_db and len(torrents) > 0:
             print("[I] inserting torrents into database")
             for torrent in torrents:
                 if _is_id_available(torrent['id']):
                     insert_into_db(torrent, figyelo[0])
         if auto_download:
             for torrent in torrents:
-                print("[D] downloading (%s) %s" % (torrent['id'], torrent['nev']))
-                #pioodownload(n1.retrieve_torrent(int(torrent['id'])))
-        #print
+                print("[D] downloading (%s) %s" % (
+                    torrent['id'], torrent['nev']))
+                # pioodownload(n1.retrieve_torrent(int(torrent['id'])))
 
 
 def parse_args():
@@ -266,9 +285,10 @@ def main():
     if _needs_init:
         _create_figyelo_db(_cur)
 
-    # TODO from now on we must parse cmdline options, or move figyelo functionality into ncore_util.py
-    #days = 30
-    #datum = str(datetime.date.today()-datetime.timedelta(days=days))
+    # TODO from now on we must parse cmdline options,
+    # or move figyelo functionality into ncore_util.py
+    # days = 30
+    # datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
     parser, args = parse_args()
     print args
