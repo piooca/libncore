@@ -7,8 +7,8 @@ import cookielib
 from bs4 import BeautifulSoup
 import ConfigParser
 from os.path import expanduser
-import transmissionrpc
-from base64 import b64encode
+#from base64 import b64encode
+#import transmissionrpc
 
 
 def _extract_torrent_data(tag):
@@ -21,9 +21,14 @@ def _extract_torrent_data(tag):
                'nev': tag.find_all('a')[1]['title'],
                #'alt_nev': tag.find_all('span')[0]['title'],
                'tipus': tag.find('a')['href'].split('=')[1],
-               #'img_url': tag.find('div', {'class': 'infobar'}).find('img')['onmouseover'].split("'")[1],
-               # 'infolink': tag.find('a', {'class': 'infolink'})['href'].split('?')[1],
-               # 'imdbrank': tag.find('a', {'class': 'infolink'}).text.split(':')[1].replace(']', '').strip(),
+               #'img_url': tag.find('div',
+                   #{'class': 'infobar'}).find(
+                       #'img')['onmouseover'].split("'")[1],
+               # 'infolink': tag.find('a',
+                   #{'class': 'infolink'})['href'].split('?')[1],
+               # 'imdbrank': tag.find('a',
+                   #{'class': 'infolink'}).text.split(
+                       #':')[1].replace(']', '').strip(),
                'meret': tag.find('div', {'class': 'box_meret2'}).text,
                'downloaded': int(tag.find('div', {'class': 'box_d2'}).text),
                'seed': int(tag.find('div', {'class': 'box_s2'}).text),
@@ -49,7 +54,8 @@ def _extract_torrent_data(tag):
 def _get_torrent_tag_from_htmldata(html):
     """
     namost ez egy html oldalt fog kapni, amit szepen feldolgoz
-    :rtype : array of dictonary of id, nev, meret, downloaded, seed, leech, date, status
+    :rtype : array of dictonary of
+        id, nev, meret, downloaded, seed, leech, date, status
     :param html: search page (html) as a string
     """
     soup = BeautifulSoup(html)
@@ -68,12 +74,14 @@ def _count_pages(html):
     bottom = soup.find('div', id='pager_bottom')
     try:
         if len(bottom.find_all('a')) > 0:
-            page_nr = int(str(bottom.find_all('a')[-1]['href']).split('oldal=')[1].split('&')[0])
+            page_nr = int(str(bottom.find_all('a')[-1]['href']).split(
+                'oldal=')[1].split('&')[0])
             return page_nr
         else:
             return 1
     except AttributeError:
         return 0
+
 
 def readconfig(configfile='~/.ncore/config'):
     config = ConfigParser.ConfigParser()
@@ -93,7 +101,7 @@ class nCore:
     n = nCore()
     list = n.search('my favorite show', 'xvidser_hun')
     print_torrents(list)
-    
+
     Optionally:
     torrentfile = n.retrieve_torrent('id')
     pioodownload(torrentfile)
@@ -114,7 +122,9 @@ class nCore:
         self.url_base = 'https://ncore.cc'
         self.url_login = self.url_base + '/login.php'
         self.url_torrents = self.url_base + '/torrents.php'
-        self.login_data = urllib.urlencode({'nev': self.username, 'pass': self.password})
+        self.login_data = urllib.urlencode({
+            'nev': self.username,
+            'pass': self.password})
         self.cj = cookielib.CookieJar()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
 
@@ -144,7 +154,12 @@ class nCore:
         if oldalszam > 1:
             url += '?oldal=' + str(oldalszam)
         search_data = urllib.urlencode(
-            {'mire': mire, 'miben': 'name', 'tipus': tipus, 'submit.x': '6', 'submit.y': '18', 'tags': tags})
+            {'mire': mire,
+            'miben': 'name',
+            'tipus': tipus,
+            'submit.x': '6',
+            'submit.y': '18',
+            'tags': tags})
         resp = self.opener.open(url, search_data)
         return resp.read()
 
@@ -179,7 +194,8 @@ def print_torrents(torrents):
     :param torrents: a torrents object produced by search function
     """
     for i in range(len(torrents)):
-        print("%(date)s|%(nev)s, (%(meret)s), Dwn: %(downloaded)s, S/L: %(seed)s/%(leech)s, ID: %(id)s" % torrents[i])
+        print("%(date)s|%(nev)s, (%(meret)s), Dwn: %(downloaded)s, "
+            "S/L: %(seed)s/%(leech)s, ID: %(id)s" % torrents[i])
 
 
 def main():
