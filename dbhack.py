@@ -7,7 +7,8 @@ import sqlite3
 from os.path import exists
 
 
-_dbfile = "ncore.db"  # TODO find dbfile's place
+#TODO find dbfile's place
+_dbfile = "ncore.db"
 _memdb = ":memory:"
 
 if not exists(_dbfile):
@@ -19,8 +20,9 @@ _cur = _conn.cursor()
 
 
 def insert_into_db(torrent):
-    sqlstatement = 'INSERT INTO TorrentData VALUES(:id, :nev, :alt_nev, :tipus, :img_url, :infolink, :imdbrank, ' \
-                   ':meret, :downloaded, :seed, :leech, :date, :feltolto, :status)'
+    sqlstatement = 'INSERT INTO TorrentData '
+    'VALUES(:id, :nev, :alt_nev, :tipus, :img_url, :infolink, :imdbrank, ' \
+    ':meret, :downloaded, :seed, :leech, :date, :feltolto, :status)'
     _cur.execute(sqlstatement, {
         'id': torrent['id'],
         'nev': torrent['nev'],
@@ -41,10 +43,22 @@ def insert_into_db(torrent):
 
 
 def _create_torrent_db(cur):
-    cur.execute("CREATE TABLE Params (ParamKey TEXT PRIMARY KEY, ParamValue TEXT)")
+    cur.execute("CREATE TABLE "
+    "Params (ParamKey TEXT PRIMARY KEY, ParamValue TEXT)")
     cur.execute(
-        'CREATE TABLE TorrentData (id TEXT PRIMARY KEY, nev TEXT, alt_nev TEXT, tipus TEXT, img_url TEXT, '
-        'infolink TEXT, imdbrank TEXT, meret TEXT, downloaded NUMBER, seed NUMBER, leech NUMBER, date NUMBER, '
+        'CREATE TABLE TorrentData ('
+        'id TEXT PRIMARY KEY, '
+        'nev TEXT, '
+        'alt_nev TEXT, '
+        'tipus TEXT, '
+        'img_url TEXT, '
+        'infolink TEXT, '
+        'imdbrank TEXT, '
+        'meret TEXT, '
+        'downloaded NUMBER, '
+        'seed NUMBER, '
+        'leech NUMBER, '
+        'date NUMBER, '
         'feltolto TEXT, status TEXT)')
     cur.execute("CREATE TABLE Tagek (TagID NUMBER PRIMARY KEY, Tag TEXT)")
     cur.execute("CREATE TABLE TorrentTags (TorrentID NUMBER, TagID NUMBER)")
@@ -52,7 +66,9 @@ def _create_torrent_db(cur):
 
 
 def _is_id_available(torrentid):
-    _cur.execute('SELECT count(id) FROM TorrentData WHERE id = ?', (torrentid, ))
+    _cur.execute('SELECT count(id) '
+    'FROM TorrentData '
+    'WHERE id = ?', (torrentid, ))
     row = _cur.fetchone()
     if row[0] == 0:
         return True
