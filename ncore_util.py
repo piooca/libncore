@@ -4,8 +4,12 @@ import datetime
 from nCore import *
 from os.path import expanduser
 import ConfigParser
+import transmissionrpc
+from base64 import b64encode
+
 
 __author__ = 'pioo'
+
 
 def usage():
     print '[*] Usage: search:'
@@ -17,10 +21,12 @@ def usage():
     print '[+] categories: categories, second parameter'
     print ''
 
+
 def categories():
     print '[*] Categories list:'
     print '[+] Film: xvid_hun, xvid, dvd_hun, dvd, dvd9_hun, dvd9, hd_hun, hd'
-    print '[+] Sorozat: xvidser_hun, xvidser, dvdser_hun, dvdser, hdser_hun, hdser'
+    print '[+] Sorozat: xvidser_hun, xvidser, dvdser_hun, dvdser, hdser_hun, \
+        hdser'
     print '[+] Zene: mp3_hun, mp3, lossless_hun, lossless, clip'
     print '[+] XXX: xxx_xvid, xxx_dvd, imageset, xxx_hd'
     print '[+] Jatek: game_iso, game_rip, console'
@@ -28,10 +34,12 @@ def categories():
     print '[+] Konyv: ebook_hun, ebook'
     print ''
 
+
 def pioodownload(torrent, started=True):
     """
     uploads torrent file to a transmission instance
     """
+    #TODO more checking, try, etc
     server_host = config['download']['server_host']
     tc = transmissionrpc.Client(server_host)
     params = {'paused': False}
@@ -41,6 +49,7 @@ def pioodownload(torrent, started=True):
     else:
         tc.add_torrent(torrent)
 
+
 def readconfig():
     config = ConfigParser.ConfigParser()
     config.read(expanduser('~/.ncore/config'))
@@ -49,6 +58,7 @@ def readconfig():
         d[k] = dict(config._defaults, **d[k])
         d[k].pop('__name__', None)
     return d
+
 
 def torrent_search(mit, miben, tags):
     print 'searching for "%s" in "%s" (tags: %s)' % (mit, miben, tags)
@@ -73,7 +83,8 @@ while nCoreCMD != 'exit':
 
     if nCoreCMD[0:2] == 'd:':
         print 'downloading %s' % nCoreCMD
-        pioodownload(n.retrieve_torrent(int(nCoreCMD.replace('d:', '', 1).strip())))
+        pioodownload(n.retrieve_torrent(
+            int(nCoreCMD.replace('d:', '', 1).strip())))
     elif nCoreCMD[0:2] == 's:':
         search_string = nCoreCMD.replace('s:', '', 1).lstrip().split(',')
         if len(search_string) == 1:
@@ -103,4 +114,3 @@ while nCoreCMD != 'exit':
             exit()
         else:
             torrent_search(nCoreCMD, default_category, default_tags)
-
