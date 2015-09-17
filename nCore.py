@@ -17,6 +17,7 @@ def _extract_torrent_data(tag):
     :rtype : dictionary of id, nev, meret, download, seed, leech, date, status
     :param tag: a BeautifulSoup4 tag
     """
+    # TODO: create a torrent class
     torrent = {'id': int(tag.find_all('a')[1]['href'].split('id=')[1]),
                'nev': tag.find_all('a')[1]['title'],
                #'alt_nev': tag.find_all('span')[0]['title'],
@@ -39,13 +40,13 @@ def _extract_torrent_data(tag):
 
     if tag.find('div', {'class': 'torrent_ok'}):
         torrent['status'] = True
-    # TODO: torrent['alt_nev']
+    # TODO: parse out torrent['alt_nev']
     torrent['alt_nev'] = ""
-    # TODO: torrent['img_url']
+    # TODO: parse out torrent['img_url']
     torrent['img_url'] = ""
-    # TODO: torrent['infolink']
+    # TODO: parse out torrent['infolink']
     torrent['infolink'] = ""
-    # TODO: torrent['imdbrank']
+    # TODO: parse out torrent['imdbrank']
     torrent['imdbrank'] = ""
     # TODO: tag-ek lekerese, izgi, mert ez masik oldalon van
     return torrent
@@ -93,6 +94,20 @@ def readconfig(configfile='~/.ncore/config'):
     return d
 
 
+class nCoreTorrent:
+    """
+    Object to hold a torrent object from ncore.cc
+    This object is under construction.
+    """
+    def __init__(self, id, nev, tipus, meret, download, seed, leech, date,
+        feltolto, status, alt_nev, img_url, infolink, imdbrank):
+        """
+        missing doc!!!
+        """
+        # TODO: megtervezni az nCoreTorrent objektumot...
+        pass
+
+
 class nCore:
     """
     Designed to connect to ncore.cc and perform search and download torrent
@@ -110,7 +125,7 @@ class nCore:
     def __init__(self, configfile='~/.ncore/config'):
         """
         missing doc!!!
-        # TODO doc!
+        # TODO: doc!
         :param username: login credentials
         :param password: login credentials
         :param useragent: optional web browser user agent string
@@ -190,7 +205,7 @@ class nCore:
 def print_torrents(torrents):
     """
     print formatted torrent list
-    # TODO missing doc
+    # TODO: missing doc
     :param torrents: a torrents object produced by search function
     """
     for i in range(len(torrents)):
