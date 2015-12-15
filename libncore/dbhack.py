@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = 'pioo'
 
 import nCore
 import sqlite3
 from os.path import exists
 
 
-#TODO find dbfile's place
+__author__ = 'pioo'
+# TODO find dbfile's place
 _dbfile = "ncore.db"
 _memdb = ":memory:"
 

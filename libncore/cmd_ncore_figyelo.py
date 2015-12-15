@@ -6,7 +6,6 @@ import nCore
 import sqlite3
 from os.path import exists, expanduser
 import argparse
-#import datetime
 import transmissionrpc
 from base64 import b64encode
 
@@ -22,6 +21,7 @@ else:
 _conn = sqlite3.connect(_dbfile)
 _cur = _conn.cursor()
 
+# TODO kiszervezni a model reteget inet
 
 def _create_figyelo_db(cur):
     """
@@ -286,7 +286,7 @@ def main():
         _create_figyelo_db(_cur)
 
     # TODO from now on we must parse cmdline options,
-    # or move figyelo functionality into ncore_util.py
+    # or move figyelo functionality into cmd_ncore_util.py
     # days = 30
     # datum = str(datetime.date.today()-datetime.timedelta(days=days))
 
