@@ -66,15 +66,17 @@ def list_torrents(name, id, count):
         "JOIN figyelo " \
         "ON TorrentData.figyelo = figyelo.figyelo " \
         "WHERE figyelo.szuro=? " \
-        "ORDER BY id DESC"
-        _cur.execute(query, (name,))
+        "ORDER BY id DESC " \
+        "LIMIT ?"
+        _cur.execute(query, (name, count))
     elif id:
         query = "SELECT * FROM TorrentData " \
         "JOIN figyelo " \
         "ON TorrentData.figyelo = figyelo.figyelo " \
         "WHERE figyelo.figyelo=? " \
-        "ORDER BY id DESC"
-        _cur.execute(query, (id,))
+        "ORDER BY id DESC " \
+        "LIMIT ?"
+        _cur.execute(query, (id, count))
     else:
         query = "SELECT * FROM TorrentData ORDER BY id DESC LIMIT ?"
         _cur.execute(query, (count,))
@@ -98,6 +100,7 @@ def print_torrents(name=None, id=None, count=True):
     torrents = list_torrents(name, id, count)
     for torrent in torrents:
         print torrent[11], torrent[1], torrent[3], torrent[7], torrent[0]
+        print("\t\thttps://ncore.cc/torrents.php?action=details&id=%s" % torrent[0])
 
 
 def add_figyelo(szuro, kategoria="xvidser_hun"):
@@ -169,7 +172,7 @@ def list_new_torrents(ncore, figyeloid):
     for torrent in ncore.get_torrents(figyelo[1], figyelo[2]):
         # print '[I] talalt torrent id %s' % torrent['id']
         if int(torrent['id']) <= int(lastid):
-            # print '[I] nincs ujabb torrent'
+            # nincs ujabb torrent
             break
         nCore.print_torrents([torrent])
         new_torrents.append(torrent)
