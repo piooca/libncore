@@ -31,7 +31,7 @@ def _extract_torrent_data(tag):
                    #{'class': 'infolink'}).text.split(
                        #':')[1].replace(']', '').strip(),
                'meret': tag.find('div', {'class': 'box_meret2'}).text,
-               'downloaded': int(tag.find('div', {'class': 'box_d2'}).text),
+               'downloaded': tag.find('div', {'class': 'box_d2'}).text,
                'seed': int(tag.find('div', {'class': 'box_s2'}).text),
                'leech': int(tag.find('div', {'class': 'box_l2'}).text),
                'date': tag.find('div', {'class': 'box_feltoltve2'}).contents[0],
@@ -197,7 +197,7 @@ def print_torrents(torrents):
     for i in range(len(torrents)):
         print("%(date)s|%(nev)s, (%(meret)s), Dwn: %(downloaded)s, "
             "S/L: %(seed)s/%(leech)s, ID: %(id)s" % torrents[i])
-        print("\thttps://ncore.cc/torrents.php?action=details&id=%(id)" % torrents[i])
+        print("\thttps://ncore.cc/torrents.php?action=details&id=%(id)s" % torrents[i])
 
 
 def main():
